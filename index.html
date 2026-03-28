@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HoardSmith</title>
+    <meta
+      name="description"
+      content="Generate 2024 5e-compatible items using SRD-grounded weapon, armor, rarity, attunement, and sentient item rules with optional LM Studio summaries."
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <header class="masthead">
+      <p class="eyebrow">5.5e compatible</p>
+      <h1>HoardSmith</h1>
+      <p class="subtitle">
+        A static item generator for local play or Azure Static Web Apps, tuned to the 2024 fifth-edition item chassis and
+        layered with provenance, discovery, sentience, and table-ready exports.
+      </p>
+    </header>
+
+    <main class="app-shell">
+      <section class="panel control-panel">
+        <div class="panel-heading">
+          <h2>Forge</h2>
+          <p>Choose either standard 2024 category generation or an optional 2024 DMG family roll, then set the chassis and agency.</p>
+        </div>
+
+        <form id="itemForm" class="control-grid">
+          <label>
+            <span>Generation Mode</span>
+            <select id="itemFamily" name="itemFamily"></select>
+          </label>
+
+          <label>
+            <span>Item Nature</span>
+            <select id="itemNature" name="itemNature">
+              <option value="magic">Magic</option>
+              <option value="mundane">Mundane</option>
+              <option value="auto">Auto</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Rarity</span>
+            <select id="rarity" name="rarity">
+              <option value="random">Random</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Very Rare">Very Rare</option>
+              <option value="Legendary">Legendary</option>
+              <option value="Artifact">Artifact</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Base Category</span>
+            <select id="baseCategory" name="baseCategory"></select>
+          </label>
+
+          <label>
+            <span>Armament Lens</span>
+            <select id="armamentRole" name="armamentRole">
+              <option value="any">Any</option>
+              <option value="melee">Melee</option>
+              <option value="ranged">Ranged</option>
+              <option value="defensive">Defensive</option>
+              <option value="utility">Utility</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Base Chassis</span>
+            <select id="baseItem" name="baseItem"></select>
+          </label>
+
+          <label>
+            <span>Sentience</span>
+            <select id="sentientMode" name="sentientMode">
+              <option value="auto">Auto</option>
+              <option value="required">Force sentient</option>
+              <option value="off">Never sentient</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Curse Pressure</span>
+            <select id="curseMode" name="curseMode">
+              <option value="auto">Auto</option>
+              <option value="forced">Force curse</option>
+              <option value="off">No curse</option>
+            </select>
+          </label>
+
+          <label class="span-two">
+            <span>Base Item Name</span>
+            <input id="itemName" name="itemName" type="text" placeholder="Enter a custom base name or leave blank">
+          </label>
+
+          <label class="span-two">
+            <span>Seed</span>
+            <input id="seed" name="seed" type="text" placeholder="Leave blank or use -1 for a random seed">
+          </label>
+
+          <div class="button-row span-two">
+            <button id="generateButton" type="submit" class="primary-button">Generate Item</button>
+            <button id="rerollButton" type="button" class="secondary-button">Reroll Seed</button>
+          </div>
+        </form>
+
+        <section class="subpanel">
+          <div class="subpanel-heading">
+            <h3>LM Studio</h3>
+            <p>Use a local model for the player-facing summary.</p>
+          </div>
+
+          <div class="control-grid compact">
+            <label class="span-two">
+              <span>API Base URL</span>
+              <input id="lmStudioBaseUrl" type="text" value="/api/lmstudio/v1">
+            </label>
+
+            <label class="span-two">
+              <span>Loaded Model</span>
+              <select id="lmStudioModel">
+                <option value="">Detect a loaded model</option>
+              </select>
+            </label>
+
+            <div class="button-row span-two">
+              <button id="detectModelsButton" type="button" class="secondary-button">Detect Models</button>
+              <button id="summarizeButton" type="button" class="secondary-button">Generate Summary</button>
+            </div>
+          </div>
+
+          <p id="lmStudioStatus" class="status-text">
+            Local runs use the built-in same-origin proxy at <code>/api/lmstudio/v1</code>. If you host this UI somewhere
+            else, point the field at your LM Studio URL directly and enable CORS there.
+          </p>
+        </section>
+
+        <section class="subpanel">
+          <div class="subpanel-heading">
+            <h3>Recommended Models</h3>
+            <p>Researched for LM Studio and 16 GB RAM or less.</p>
+          </div>
+          <ul class="research-list">
+            <li>
+              <strong>Qwen3-4B-2507</strong>
+              <span>Small default for instruction following and quick item summaries.</span>
+            </li>
+            <li>
+              <strong>Gemma 3 12B</strong>
+              <span>Higher-quality prose while staying under a 16 GB memory ceiling.</span>
+            </li>
+          </ul>
+        </section>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="panel-heading">
+          <h2>Ledger</h2>
+          <p id="appStatus" class="status-text" aria-live="polite">Ready.</p>
+        </div>
+
+        <div class="button-row export-row">
+          <button id="copyMarkdownButton" type="button" class="secondary-button" disabled>Copy Markdown</button>
+          <button id="downloadJsonButton" type="button" class="secondary-button" disabled>Download JSON</button>
+        </div>
+
+        <div id="resultRoot" class="result-root">
+          <article class="empty-state">
+            <p class="empty-kicker">Awaiting a forged item</p>
+            <h3>The generator outputs a full record</h3>
+            <p>
+              Identity, chassis, discovery track, drawbacks, sentience, hooks, crafting notes, and a GM short form are all
+              rendered from one seed.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footnote">
+      <p>
+        Rules chassis derived from official D&amp;D 2024 Basic Rules and SRD 5.2.1, with SRD 5.1 references used where the
+        2024 open corpus does not fully cover a category. Flavor tables and custom generators are original content built to
+        stay compatible with that chassis.
+      </p>
+    </footer>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
