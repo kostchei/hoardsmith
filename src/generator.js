@@ -143,6 +143,45 @@ function getBaseItemsForCategory(category) {
   return BASE_ITEMS[category] || [];
 }
 
+function getReferenceItemById(referenceId) {
+  return REFERENCE_ITEMS.find((item) => item.id === referenceId) || null;
+}
+
+function getModuleById(moduleId) {
+  return POWER_MODULES.find((module) => module.id === moduleId) || null;
+}
+
+function getReferenceBackedModuleOptions(category, rarity, editionPreference = "2024") {
+  return POWER_MODULES.filter((module) => {
+    if (!module.references?.length) {
+      return false;
+    }
+    if (category && category !== "random" && !module.categories.includes(category)) {
+      return false;
+    }
+    if (rarity && rarity !== "random" && !module.rarities.includes(rarity)) {
+      return false;
+    }
+    return moduleMatchesEdition(module, editionPreference);
+  })
+    .map((module) => {
+      const reference = getReferenceItemById(module.references[0]);
+      if (!reference) {
+        return null;
+      }
+      return {
+        id: `reference:${module.id}`,
+        name: reference.name,
+        source: reference.source,
+        rarity: reference.rarity,
+        referenceId: reference.id,
+        moduleId: module.id,
+        categories: module.categories
+      };
+    })
+    .filter(Boolean);
+}
+
 function deriveMagicCategory(baseCategory) {
   return MAGIC_CATEGORY_RULES[baseCategory] ? baseCategory : "wondrous";
 }
@@ -180,10 +219,33 @@ function resolveBaseCategory(options, rng) {
 function resolveBaseItem(options, rng, itemNature) {
   const baseCategory = resolveBaseCategory(options, rng);
   const list = getBaseItemsForCategory(baseCategory);
+  const selectedReferenceModule =
+    itemNature === "magic" && options.baseItemId?.startsWith("reference:") ? getModuleById(options.baseItemId.replace("reference:", "")) : null;
   const filtered =
     options.armamentRole === "any"
       ? list
       : list.filter((item) => item.armament === options.armamentRole || item.tags?.includes(options.armamentRole));
+
+  if (selectedReferenceModule) {
+    const fallback =
+      list.find((item) => selectedReferenceModule.requireTags?.every((tag) => item.tags?.includes(tag))) ||
+      filtered[0] ||
+      list[0];
+    const referenceItem = getReferenceItemById(selectedReferenceModule.references[0]);
+    if (!fallback || !referenceItem) {
+      throw new Error(`No compatible base item found for ${selectedReferenceModule.label}.`);
+    }
+
+    return {
+      ...fallback,
+      category: baseCategory,
+      displayName: referenceItem.name,
+      lockedName: referenceItem.name,
+      itemNature,
+      referenceModuleId: selectedReferenceModule.id,
+      referenceItemId: referenceItem.id
+    };
+  }
 
   const selected =
     (options.baseItemId && options.baseItemId !== "random" && filtered.find((item) => item.id === options.baseItemId)) ||
@@ -214,6 +276,13 @@ function moduleMatchesEdition(module, editionPreference) {
 function chooseModule(options, rng, baseItem, rarity) {
   if (rarity === "Mundane") {
     return null;
+  }
+
+  if (baseItem.referenceModuleId) {
+    const forcedModule = getModuleById(baseItem.referenceModuleId);
+    if (forcedModule) {
+      return forcedModule;
+    }
   }
 
   const magicCategory = deriveMagicCategory(baseItem.category);
@@ -276,6 +345,14 @@ function chooseModule(options, rng, baseItem, rarity) {
 }
 
 function buildName(rng, baseItem, module) {
+  if (baseItem.lockedName) {
+    return {
+      name: baseItem.lockedName,
+      commonName: baseItem.lockedName,
+      trueName: baseItem.lockedName
+    };
+  }
+
   const theme = module?.theme || "memory";
   const lexicon = THEME_LEXICON[theme] || THEME_LEXICON.memory;
   const prefix = pick(rng, lexicon.prefixes);
@@ -501,6 +578,16 @@ function buildMechanics(module, rarity, baseItem, rng) {
       failure: "If the draught is interrupted, you gain the resistance only until the end of your current turn.",
       destruction: "Consumed on use."
     }),
+    "longevity-draught": () => ({
+      activation: "Bonus Action",
+      cadence: "Single use",
+      effect:
+        "When consumed, the potion reduces the drinker's physical age by 1d6 + 6 years, to a minimum age of 13 years. Each later use carries a cumulative 10 percent chance to age the drinker by the same amount instead.",
+      saveOrCheck: "None",
+      recharge: "Consumable",
+      failure: "If the potion has spoiled or been diluted, it produces only a brief illusion of youth and no lasting effect.",
+      destruction: "Consumed on use."
+    }),
     "vitality-draught": () => ({
       activation: "Bonus Action",
       cadence: "Single use",
@@ -530,6 +617,16 @@ function buildMechanics(module, rarity, baseItem, rng) {
       recharge: "The rod regains 1d4 + 1 charges at the next dawn.",
       failure: "If it falls to 0 charges, the rod cannot restore life again until it is bathed in sunrise at a consecrated site.",
       destruction: pick(rng, NARRATIVE_TABLES.destruction)
+    }),
+    "magi-staff": () => ({
+      activation: "Magic action, Reaction, or Passive",
+      cadence: "50 charges, regains 4d6 + 2 expended charges at the next dawn",
+      effect:
+        "The staff grants a +2 bonus to spell attack rolls and spell save DCs while held. It functions as a potent arcane focus, carries deep spell storage, and can expend charges to cast high-tier spells such as force, fire, utility, and control effects. As a reaction, it can absorb a spell that targets only you into its charge reservoir, up to the staff's maximum.",
+      saveOrCheck: "Uses your spell save DC. If you lack one, use item DC 19.",
+      recharge: "Regains 4d6 + 2 expended charges at dawn; if the last charge is spent, roll to determine whether the staff is destroyed or unleashes a catastrophic retributive strike.",
+      failure: "If you expend the last charge, the staff risks breaking in a burst of stored magic.",
+      destruction: "It can be broken deliberately as an action to release a retributive strike, with survival and fallout left to the DM's adjudication."
     }),
     "holding-cache": () => ({
       activation: "Use Object / item interaction",
@@ -712,29 +809,54 @@ function roll4d6DropLowest(rng) {
   return rolls[1] + rolls[2] + rolls[3];
 }
 
+function roll1d10Plus1d8(rng) {
+  return randomInt(rng, 1, 10) + randomInt(rng, 1, 8);
+}
+
 function buildSentience(rng, baseItem, module, rarity, mode) {
-  const magicCategory = deriveMagicCategory(baseItem.category);
-  if (!module || !MAGIC_CATEGORY_RULES[magicCategory].canBeSentient) {
+  if (baseItem.itemNature === "mundane") {
     return null;
   }
 
-  const shouldBeSentient = mode === "required" ? true : mode === "off" ? false : chance(rng, sentienceChance[rarity]);
-  if (!shouldBeSentient) {
+  if (mode === "off") {
     return null;
   }
 
-  const intelligence = [roll4d6DropLowest(rng), roll4d6DropLowest(rng), roll4d6DropLowest(rng)];
-  const charisma = intelligence[2];
+  const usesFullMind =
+    mode === "required"
+      ? true
+      : baseItem.category === "weapon"
+        ? chance(rng, 0.75)
+        : chance(rng, 0.5);
+  const intelligence = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
+  const wisdom = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
+  const charisma = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
+  const craftedBy = pick(rng, NARRATIVE_TABLES.creators);
+  const craftingReason = pick(rng, NARRATIVE_TABLES.purposes);
+  const communication = usesFullMind
+    ? weightedPick(rng, SENTIENT_TABLES.communication)
+    : "Communicates only simple urges, emotions, and warning impulses to its bearer.";
+  const literacy = usesFullMind ? "Can read and understand writing in the languages it knows." : "Cannot speak or read.";
+  const voice = usesFullMind ? pick(rng, SENTIENT_TABLES.voices) : "a mute, pressure-like instinct that presses wants and warnings into the bearer's mind";
 
   return {
-    abilityScores: { intelligence: intelligence[0], wisdom: intelligence[1], charisma },
+    abilityScores: { intelligence, wisdom, charisma },
+    abilityMethod: usesFullMind
+      ? "4d6, drop the lowest die, for each of INT, WIS, and CHA."
+      : "1d10 + 1d8, for each of INT, WIS, and CHA.",
+    intelligenceTier: usesFullMind ? "Full sentience" : "Diminished sentience",
     alignment: weightedPick(rng, SENTIENT_TABLES.alignments),
-    communication: weightedPick(rng, SENTIENT_TABLES.communication),
+    communication,
+    literacy,
     senses: pick(rng, SENTIENT_TABLES.senses),
-    voice: pick(rng, SENTIENT_TABLES.voices),
+    voice,
+    craftedBy,
+    craftingReason,
     ideal: pick(rng, SENTIENT_TABLES.ideals),
     bond: pick(rng, SENTIENT_TABLES.bonds),
     flaw: pick(rng, SENTIENT_TABLES.flaws),
+    motive: pick(rng, SENTIENT_TABLES.motives),
+    quirk: pick(rng, SENTIENT_TABLES.quirks),
     purpose: pick(rng, SENTIENT_TABLES.purposes),
     rewards: pick(rng, NARRATIVE_TABLES.rewards),
     dislikes: pick(rng, NARRATIVE_TABLES.dislikes),
@@ -881,9 +1003,17 @@ export function generateItem(rawOptions) {
   };
 }
 
-export function getBaseItemsForUi(category, familyId = "standard") {
+export function getBaseItemsForUi(category, familyId = "standard", options = {}) {
+  const includeReferences = options.itemNature !== "mundane";
+  const rarity = options.rarity || "random";
+
   if (category && category !== "random") {
-    return getBaseItemsForCategory(category);
+    const baseItems = getBaseItemsForCategory(category);
+    if (!includeReferences) {
+      return baseItems;
+    }
+    const references = getReferenceBackedModuleOptions(category, rarity, options.editionPreference);
+    return [...references, ...baseItems];
   }
 
   const familyRule = ITEM_FAMILY_RULES[familyId] || ITEM_FAMILY_RULES.standard;
@@ -891,10 +1021,23 @@ export function getBaseItemsForUi(category, familyId = "standard") {
     Object.entries(MAGIC_CATEGORY_RULES).map(([id, rule]) => [id, rule.label])
   );
 
-  return familyRule.categories.flatMap((categoryId) =>
+  const baseItems = familyRule.categories.flatMap((categoryId) =>
     getBaseItemsForCategory(categoryId).map((item) => ({
       ...item,
       name: `${item.name} (${categoryLabels[categoryId] || titleCase(categoryId)})`
     }))
   );
+
+  if (!includeReferences) {
+    return baseItems;
+  }
+
+  const referenceItems = familyRule.categories.flatMap((categoryId) =>
+    getReferenceBackedModuleOptions(categoryId, rarity, options.editionPreference).map((item) => ({
+      ...item,
+      name: `${item.name} (${categoryLabels[categoryId] || titleCase(categoryId)})`
+    }))
+  );
+
+  return [...referenceItems, ...baseItems];
 }

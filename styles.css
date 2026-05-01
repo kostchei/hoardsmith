@@ -353,6 +353,16 @@ button:disabled {
   padding-bottom: 0;
 }
 
+.sentience-card {
+  grid-column: 1 / -1;
+}
+
+.sentience-details {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+  align-items: start;
+}
+
 .detail-label {
   display: block;
   margin-bottom: 4px;
@@ -442,6 +452,10 @@ button:disabled {
   .control-grid,
   .overview-grid,
   .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sentience-details {
     grid-template-columns: 1fr;
   }
 

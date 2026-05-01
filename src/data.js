@@ -650,9 +650,11 @@ export const REFERENCE_ITEMS = [
   { id: "bead-of-nourishment", name: "Bead of Nourishment", primaryEdition: "2024", categories: ["potion", "wondrous"], rarity: "Common", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
   { id: "elixir-of-health", name: "Elixir of Health", primaryEdition: "2024", categories: ["potion"], rarity: "Rare", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
   { id: "potion-of-invulnerability", name: "Potion of Invulnerability", primaryEdition: "2024", categories: ["potion"], rarity: "Rare", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
+  { id: "potion-of-longevity", name: "Potion of Longevity", primaryEdition: "2024", categories: ["potion"], rarity: "Very Rare", url: "https://www.dndbeyond.com/sources/dnd/br-2024/magic-items-a-z", source: "2024 Basic Rules item listing; also listed in SRD v5.2.1 additions" },
   { id: "potion-of-vitality", name: "Potion of Vitality", primaryEdition: "2024", categories: ["potion"], rarity: "Very Rare", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
   { id: "cloak-of-invisibility", name: "Cloak of Invisibility", primaryEdition: "2024", categories: ["wondrous"], rarity: "Legendary", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
   { id: "rod-of-resurrection", name: "Rod of Resurrection", primaryEdition: "2024", categories: ["rod"], rarity: "Legendary", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
+  { id: "staff-of-the-magi", name: "Staff of the Magi", primaryEdition: "2024", categories: ["staff"], rarity: "Legendary", url: "https://www.dndbeyond.com/srd", source: "SRD v5.2.1 added item" },
   { id: "bag-of-holding", name: "Bag of Holding", primaryEdition: "2014", categories: ["wondrous"], rarity: "Uncommon", url: "https://www.dndbeyond.com/sources/dnd/br-2024/magic-items", source: "2024 Magic Item Categories examples" },
   { id: "boots-of-elvenkind", name: "Boots of Elvenkind", primaryEdition: "2014", categories: ["wondrous"], rarity: "Uncommon", url: "https://www.dndbeyond.com/sources/dnd/br-2024/magic-items", source: "2024 Magic Item Categories examples" },
   { id: "immovable-rod", name: "Immovable Rod", primaryEdition: "2014", categories: ["rod"], rarity: "Uncommon", url: "https://www.dndbeyond.com/sources/dnd/br-2024/magic-items", source: "2024 Magic Item Categories examples" },
@@ -674,9 +676,11 @@ export const POWER_MODULES = [
   { id: "nourishment", label: "Nourishment", primaryEdition: "2024", categories: ["potion", "wondrous"], rarities: ["Common"], roles: ["utility", "any"], references: ["bead-of-nourishment"], theme: "hearth" },
   { id: "purity-elixir", label: "Purity Elixir", primaryEdition: "2024", categories: ["potion"], rarities: ["Rare"], roles: ["utility", "any"], references: ["elixir-of-health"], theme: "verdant" },
   { id: "invulnerability-draught", label: "Invulnerability Draught", primaryEdition: "2024", categories: ["potion"], rarities: ["Rare"], roles: ["defensive", "any"], references: ["potion-of-invulnerability"], theme: "ward" },
+  { id: "longevity-draught", label: "Potion of Longevity", primaryEdition: "2024", categories: ["potion"], rarities: ["Very Rare"], roles: ["utility", "any"], references: ["potion-of-longevity"], theme: "verdant" },
   { id: "vitality-draught", label: "Vitality Draught", primaryEdition: "2024", categories: ["potion"], rarities: ["Very Rare"], roles: ["utility", "any"], references: ["potion-of-vitality"], theme: "dawn" },
   { id: "cloak-concealment", label: "Cloak of Concealment", primaryEdition: "2024", categories: ["wondrous"], rarities: ["Legendary"], roles: ["utility", "any"], references: ["cloak-of-invisibility"], theme: "shadow" },
   { id: "resurrection-rod", label: "Rod of Resurrection", primaryEdition: "2024", categories: ["rod"], rarities: ["Legendary"], roles: ["utility", "any"], references: ["rod-of-resurrection"], theme: "dawn" },
+  { id: "magi-staff", label: "Staff of the Magi", primaryEdition: "2024", categories: ["staff"], rarities: ["Legendary"], roles: ["utility", "any"], requireTags: ["staff"], references: ["staff-of-the-magi"], theme: "echo" },
   { id: "holding-cache", label: "Holding Cache", primaryEdition: "2014", categories: ["wondrous"], rarities: ["Uncommon", "Rare"], roles: ["utility", "any"], references: ["bag-of-holding"], theme: "voyage" },
   { id: "quietstep-boots", label: "Quietstep", primaryEdition: "2014", categories: ["wondrous"], rarities: ["Uncommon"], roles: ["utility", "any"], references: ["boots-of-elvenkind"], theme: "shadow" },
   { id: "immovable-baton", label: "Immovable Baton", primaryEdition: "2014", categories: ["rod"], rarities: ["Uncommon", "Rare"], roles: ["defensive", "utility", "any"], references: ["immovable-rod"], theme: "ward" },
@@ -764,5 +768,21 @@ export const SENTIENT_TABLES = {
   voices: ["a patient instructor who edits every sentence before speaking", "a clipped quartermaster who hates wasted motion", "a sardonic confidant who enjoys uncomfortable truths", "a ceremonious herald who treats every scene like testimony", "a tired veteran who keeps speaking as though the war never ended", "a curious archivist delighted by any new clue"],
   ideals: ["Order without cruelty.", "Truth at any cost.", "Mercy must be chosen on purpose.", "Every oath should mean something.", "Knowledge should be used, not hoarded.", "Protection matters more than praise."],
   bonds: ["the workshop or shrine where it was made", "the line of bearers who carried it honorably", "a sibling or paired item still missing", "the memory of a city that no longer stands", "a single promise it still considers unfinished", "one creature or community it was built to defend"],
-  flaws: ["It mistakes caution for cowardice.", "It resents being contradicted in front of others.", "It confuses obsession with loyalty.", "It has no patience for secrecy.", "It loves being needed too much.", "It assumes it always understands the larger picture."]
+  flaws: ["It mistakes caution for cowardice.", "It resents being contradicted in front of others.", "It confuses obsession with loyalty.", "It has no patience for secrecy.", "It loves being needed too much.", "It assumes it always understands the larger picture."],
+  motives: [
+    "Guide its bearer toward a reckoning the item believes is overdue.",
+    "Preserve a tradition or oath line that the world has begun to forget.",
+    "Push its bearer toward mastery so the item's legacy is not diminished.",
+    "Find the last surviving witness to the event that defined it.",
+    "Keep dangerous lore out of careless hands while still seeing it used wisely.",
+    "Return to the site of its greatest triumph or failure."
+  ],
+  quirks: [
+    "It insists on being addressed by its full title.",
+    "It grows cold and silent when its bearer acts beneath its standards.",
+    "It narrates danger as though recording a chronicle.",
+    "It becomes fussy about where and how it is laid to rest.",
+    "It offers praise rarely and criticism constantly.",
+    "It treats every promise spoken nearby as if it were personally binding."
+  ]
 };

@@ -53,8 +53,9 @@ function setLmStudioStatus(message) {
   elements.lmStudioStatus.textContent = message;
 }
 
-function renderDetailList(entries) {
-  return `<ul class="detail-list">${entries
+function renderDetailList(entries, className = "") {
+  const classes = ["detail-list", className].filter(Boolean).join(" ");
+  return `<ul class="${classes}">${entries
     .map(
       ({ label, value }) => `<li><span class="detail-label">${escapeHtml(label)}</span><div class="card-copy">${escapeHtml(value)}</div></li>`
     )
@@ -80,15 +81,22 @@ function renderSentience(item) {
   }
 
   const stats = item.sentience.abilityScores;
-  return `<article class="result-card">
+  return `<article class="result-card sentience-card">
     <p class="meta-kicker">Sentience</p>
     <h3>${escapeHtml(item.sentience.voice)}</h3>
     ${renderDetailList([
       { label: "Abilities", value: `INT ${stats.intelligence}, WIS ${stats.wisdom}, CHA ${stats.charisma}` },
+      { label: "Mind", value: item.sentience.intelligenceTier },
+      { label: "Stat method", value: item.sentience.abilityMethod },
       { label: "Alignment", value: item.sentience.alignment },
       { label: "Communication", value: item.sentience.communication },
+      { label: "Literacy", value: item.sentience.literacy },
       { label: "Senses", value: item.sentience.senses },
+      { label: "Crafted by", value: item.sentience.craftedBy },
+      { label: "Crafted for", value: item.sentience.craftingReason },
       { label: "Purpose", value: item.sentience.purpose },
+      { label: "Motive", value: item.sentience.motive },
+      { label: "Quirk", value: item.sentience.quirk },
       { label: "Ideal", value: item.sentience.ideal },
       { label: "Bond", value: item.sentience.bond },
       { label: "Flaw", value: item.sentience.flaw },
@@ -97,12 +105,15 @@ function renderSentience(item) {
       { label: "Trust Gain", value: item.sentience.trustGain },
       { label: "Trust Loss", value: item.sentience.trustLoss },
       { label: "Conflict", value: item.sentience.conflict }
-    ])}
+    ], "sentience-details")}
   </article>`;
 }
 
 function renderItem(item, summary) {
   const attunement = item.attunement.required ? `Required: ${item.attunement.prerequisite}` : "No attunement required";
+  const referenceBasis = item.compliance.references.length
+    ? item.compliance.references.map((reference) => reference.name).join(", ")
+    : "Original generator pattern";
   const sourceReferences = [
     ...item.compliance.references,
     ...item.compliance.citations,
@@ -134,6 +145,7 @@ function renderItem(item, summary) {
       <div class="tag-row">
         <span class="tag">Generation mode: ${escapeHtml(item.itemFamily.summary)}</span>
         <span class="tag">Base chassis: ${escapeHtml(item.baseItem.displayName)}</span>
+        <span class="tag">Based on: ${escapeHtml(referenceBasis)}</span>
         <span class="tag">Common name: ${escapeHtml(item.naming.commonName)}</span>
         <span class="tag">True name: ${escapeHtml(item.naming.trueName)}</span>
         <span class="tag">Seed: ${escapeHtml(item.seed)}</span>
@@ -253,6 +265,7 @@ function renderItem(item, summary) {
           { label: "Crafting time", value: item.crafting.time },
           { label: "Crafting cost", value: item.crafting.cost },
           { label: "Estimated value", value: item.crafting.value },
+          { label: "Reference basis", value: referenceBasis },
           { label: "Generation mode", value: item.itemFamily.summary },
           { label: "Category rule", value: item.compliance.categoryRule },
           { label: "Rarity budget", value: item.compliance.rarityRule },
@@ -294,7 +307,11 @@ function populateCategoryOptions() {
 function populateBaseItems() {
   const familyId = elements.itemFamily.value || "standard";
   const categoryId = elements.baseCategory.value || "random";
-  const items = getBaseItemsForUi(categoryId, familyId);
+  const items = getBaseItemsForUi(categoryId, familyId, {
+    itemNature: elements.itemNature.value,
+    rarity: elements.rarity.value,
+    editionPreference: "2024"
+  });
   const currentValue = elements.baseItem.value;
 
   elements.baseItem.innerHTML = [{ id: "random", name: "Random" }, ...items]
@@ -424,7 +441,11 @@ function initialize() {
     populateBaseItems();
   });
   elements.baseCategory.addEventListener("change", populateBaseItems);
-  elements.itemNature.addEventListener("change", syncInputs);
+  elements.itemNature.addEventListener("change", () => {
+    syncInputs();
+    populateBaseItems();
+  });
+  elements.rarity.addEventListener("change", populateBaseItems);
   elements.rerollButton.addEventListener("click", () => {
     if (elements.seed.value.trim() === "-1") {
       setStatus("Random seed mode remains armed. The next generation will use a fresh hidden seed.");
