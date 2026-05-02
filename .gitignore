@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit tokens or secrets
+.env
+.env.*
+!.env.example
+
+# Azure SWA CLI local state
+.swa/
+
+# npm logs
+npm-debug.log*
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
