@@ -553,18 +553,24 @@ export const BASE_ITEMS = {
     ])
   ],
   shield: [
-    {
-      id: "shield",
-      name: "Shield",
-      category: "shield",
-      magicCategory: "shield",
-      kind: "Shield",
-      armament: "defensive",
-      armorClass: "+2 AC",
-      weight: "6 lb.",
-      cost: "10 GP",
-      tags: ["defensive"]
-    }
+    { id: "wicker",   name: "Wicker",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "Woven reeds or withies, light and barely more than a bundled screen.", tags: ["defensive"] },
+    { id: "bundle",   name: "Bundle",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "Bound sticks gripped as improvised cover; a shield in name only.", tags: ["defensive"] },
+    { id: "plank",    name: "Plank",    category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A rough-hewn board of wood, barely shaped, gripped through a gap.", tags: ["defensive"] },
+    { id: "buckler",  name: "Buckler",  category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A small fist-held iron disc used for deflection rather than absorption.", tags: ["defensive"] },
+    { id: "targe",    name: "Targe",    category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A small round shield of layered wood and hide, gripped by a central handle.", tags: ["defensive"] },
+    { id: "parma",    name: "Parma",    category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A light round shield used by skirmishers, balanced for quick repositioning.", tags: ["defensive"] },
+    { id: "rondache", name: "Rondache", category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A wide, round shield of hardened leather or layered metal.", tags: ["defensive"] },
+    { id: "boss",     name: "Boss Shield", category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A wide flat shield fitted with a heavy iron boss, used to punch and deflect.", tags: ["defensive"] },
+    { id: "heater",   name: "Heater",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A mid-sized triangular shield tapering to a lower point, common among mounted knights.", tags: ["defensive"] },
+    { id: "hoplon",   name: "Hoplon",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A large, bronze-faced round shield of the classical warrior tradition.", tags: ["defensive"] },
+    { id: "aspis",    name: "Aspis",    category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A large dished round shield gripped by a forearm band and central handhold.", tags: ["defensive"] },
+    { id: "lamellar", name: "Lamellar", category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "Built from overlapping lacquered strips of hide or thin plate, flexible and light.", tags: ["defensive"] },
+    { id: "kite",     name: "Kite",     category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A long, tapered shield offering coverage from shoulder to shin.", tags: ["defensive"] },
+    { id: "scutum",   name: "Scutum",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A large curved rectangular shield designed to be braced against the body.", tags: ["defensive"] },
+    { id: "turtleback", name: "Turtleback", category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "Domed and curved like a carapace, shaped to deflect blows overhead.", tags: ["defensive"] },
+    { id: "pavise",   name: "Pavise",   category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A tall freestanding shield with a support strut, used to shelter archers.", tags: ["defensive"] },
+    { id: "tower",    name: "Tower",    category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "A massive, full-body rectangular shield that provides near-total cover.", tags: ["defensive"] },
+    { id: "heraldic", name: "Heraldic", category: "shield", magicCategory: "shield", kind: "Shield", armament: "defensive", armorClass: "+2 AC", weight: "6 lb.", cost: "10 GP", detail: "Shaped and painted to display a crest or sigil, as much statement as protection.", tags: ["defensive"] }
   ],
   staff: [
     simpleBase("ash-staff", "Ash Staff", "staff", "staff", "Quarterstaff-compatible focus carved from ash wood.", [
@@ -581,14 +587,40 @@ export const BASE_ITEMS = {
     ])
   ],
   wand: [
+    simpleBase("twig", "Twig", "wand", "wand", "Small, branching, and completely unrefined.", ["focus"]),
+    simpleBase("sprig", "Sprig", "wand", "wand", "A very short, often leafy or budded offshoot.", ["focus"]),
+    simpleBase("stalk", "Stalk", "wand", "wand", "A thicker, fibrous plant stem.", ["focus"]),
+    simpleBase("root", "Root", "wand", "wand", "Twisted, gnarled, and pulled straight from the earth.", ["focus"]),
+    simpleBase("stem", "Stem", "wand", "wand", "Smooth, stripped of leaves, but retaining a natural curve.", ["focus"]),
+    simpleBase("bachetta", "Bachetta", "wand", "wand", "", ["focus"]),
+    simpleBase("dowel", "Dowel", "wand", "wand", "Perfectly cylindrical, sanded, and uniform from end to end.", ["focus"]),
+    simpleBase("pointer", "Pointer", "wand", "wand", "Tapered at one end, designed for indicating or directing attention.", ["focus"]),
+    simpleBase("stylus", "Stylus", "wand", "wand", "Short, pointed, and resembling a writing implement.", ["focus"]),
+    simpleBase("mvwala", "Mvwala", "wand", "wand", "Ornate and symbolic, often topped with a carving or gem.", ["focus"]),
+    simpleBase("dorje", "Dorje", "wand", "wand", "Diamond topped, small, ornate ritual tool.", ["focus"]),
+    simpleBase("spoke", "Spoke", "wand", "wand", "Straight, rigid, and carved as if part of a larger mechanism.", ["focus"]),
+    simpleBase("horn", "Horn", "wand", "wand", "Bone-like, jagged, or resembling a large thorn.", ["focus"]),
+    simpleBase("splinter", "Splinter", "wand", "wand", "A jagged, fractured fragment broken from something larger.", ["focus"]),
+    simpleBase("needle", "Needle", "wand", "wand", "Extremely thin, rigid, and coming to a severe point.", ["focus"]),
+    simpleBase("quill", "Quill", "wand", "wand", "Tapered, feather-light, and hollow-centered.", ["focus"]),
+    simpleBase("pin", "Pin", "wand", "wand", "Slender, metallic or bone, often with a flattened or rounded base.", ["focus"]),
+    simpleBase("switch", "Switch", "wand", "wand", "Thin, highly flexible, and capable of a whipping motion.", ["focus"]),
+    simpleBase("crop", "Crop", "wand", "wand", "Short, sturdy at the base, but flexible at the tip.", ["focus"]),
     simpleBase("willow-wand", "Willow Wand", "wand", "wand", "A slim willow wand suited to spellcasting.", ["focus"]),
     simpleBase("bone-wand", "Bone Wand", "wand", "wand", "An ivory or bone wand capped with silver.", ["focus"]),
     simpleBase("crystal-wand", "Crystal Wand", "wand", "wand", "A crystal-cored wand with etched runes.", ["focus"])
   ],
   rod: [
-    simpleBase("iron-rod", "Iron Rod", "rod", "rod", "An iron scepter meant to be planted or held.", ["focus"]),
-    simpleBase("bronze-baton", "Bronze Baton", "rod", "rod", "A balanced bronze baton with inset sigils.", ["focus"]),
-    simpleBase("rune-scepter", "Rune Scepter", "rod", "rod", "A rune-bound scepter of bone and brass.", ["focus"])
+    simpleBase("mace", "Mace", "rod", "rod", "", ["focus"]),
+    simpleBase("scepter", "Scepter", "rod", "rod", "", ["focus"]),
+    simpleBase("rod", "Rod", "rod", "rod", "", ["focus"]),
+    simpleBase("baton", "Baton", "rod", "rod", "", ["focus"]),
+    simpleBase("truncheon", "Truncheon", "rod", "rod", "", ["focus"]),
+    simpleBase("bludgeon", "Bludgeon", "rod", "rod", "", ["focus"]),
+    simpleBase("cudgel", "Cudgel", "rod", "rod", "", ["focus"]),
+    simpleBase("aklys", "Aklys", "rod", "rod", "", ["focus"]),
+    simpleBase("dowse", "Dowse", "rod", "rod", "", ["focus"]),
+    simpleBase("fasces", "Fasces", "rod", "rod", "", ["focus"])
   ],
   ring: [
     simpleBase("plain-band", "Plain Band", "ring", "ring", "A smooth, unadorned band of metal with no markings.", ["wearable"]),
