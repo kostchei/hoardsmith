@@ -820,6 +820,14 @@ function roll1d10Plus1d8(rng) {
   return randomInt(rng, 1, 10) + randomInt(rng, 1, 8);
 }
 
+function roll2d4Plus5(rng) {
+  return randomInt(rng, 1, 4) + randomInt(rng, 1, 4) + 5;
+}
+
+function roll3d4Plus8(rng) {
+  return randomInt(rng, 1, 4) + randomInt(rng, 1, 4) + randomInt(rng, 1, 4) + 8;
+}
+
 function buildSentience(rng, baseItem, module, rarity, mode) {
   if (baseItem.itemNature === "mundane") {
     return null;
@@ -829,29 +837,68 @@ function buildSentience(rng, baseItem, module, rarity, mode) {
     return null;
   }
 
-  const usesFullMind =
-    mode === "required"
-      ? true
-      : baseItem.category === "weapon"
-        ? chance(rng, 0.75)
-        : chance(rng, 0.5);
-  const intelligence = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
-  const wisdom = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
-  const charisma = usesFullMind ? roll4d6DropLowest(rng) : roll1d10Plus1d8(rng);
+  if (mode === "auto" && !chance(rng, sentienceChance[rarity] ?? 0)) {
+    return null;
+  }
+
+  const tier = pick(rng, ["nascent", "diminished", "full", "kenn"]);
+
+  let intelligence, wisdom, charisma, abilityMethod;
+  if (tier === "nascent") {
+    intelligence = randomInt(rng, 1, 5);
+    wisdom       = roll2d4Plus5(rng);
+    charisma     = randomInt(rng, 1, 5);
+    abilityMethod = "1d5 for INT and CHA; 2d4 + 5 for WIS.";
+  } else if (tier === "diminished") {
+    intelligence = roll1d10Plus1d8(rng);
+    wisdom       = roll1d10Plus1d8(rng);
+    charisma     = roll1d10Plus1d8(rng);
+    abilityMethod = "1d10 + 1d8, for each of INT, WIS, and CHA.";
+  } else if (tier === "full") {
+    intelligence = roll4d6DropLowest(rng);
+    wisdom       = roll4d6DropLowest(rng);
+    charisma     = roll4d6DropLowest(rng);
+    abilityMethod = "4d6, drop the lowest die, for each of INT, WIS, and CHA.";
+  } else {
+    intelligence = roll3d4Plus8(rng);
+    wisdom       = roll3d4Plus8(rng);
+    charisma     = roll3d4Plus8(rng);
+    abilityMethod = "3d4 + 8, for each of INT, WIS, and CHA.";
+  }
+
   const craftedBy = pick(rng, NARRATIVE_TABLES.creators);
   const craftingReason = pick(rng, NARRATIVE_TABLES.purposes);
-  const communication = usesFullMind
-    ? weightedPick(rng, SENTIENT_TABLES.communication)
-    : "Communicates only simple urges, emotions, and warning impulses to its bearer.";
-  const literacy = usesFullMind ? "Can read and understand writing in the languages it knows." : "Cannot speak or read.";
-  const voice = usesFullMind ? pick(rng, SENTIENT_TABLES.voices) : "a mute, pressure-like instinct that presses wants and warnings into the bearer's mind";
+
+  const communication =
+    tier === "nascent"
+      ? "Radiates a single overwhelming emotion — hunger, fear, or purpose — with no nuance or direction."
+      : tier === "diminished"
+        ? "Communicates only simple urges, emotions, and warning impulses to its bearer."
+        : weightedPick(rng, SENTIENT_TABLES.communication);
+
+  const literacy =
+    tier === "nascent"    ? "Has no language faculty whatsoever."
+    : tier === "diminished" ? "Cannot speak or read."
+    : tier === "full"       ? "Can read and understand writing in the languages it knows."
+    : "Reads and writes all languages it knows; can learn a new language after one week of exposure.";
+
+  const voice =
+    tier === "nascent"
+      ? "a wordless emotional broadcast felt as pressure or warmth by those who hold it"
+      : tier === "diminished"
+        ? "a mute, pressure-like instinct that presses wants and warnings into the bearer's mind"
+        : pick(rng, SENTIENT_TABLES.voices);
+
+  const intelligenceTier =
+    tier === "nascent"    ? "Nascent sentience"
+    : tier === "diminished" ? "Diminished sentience"
+    : tier === "full"       ? "Full sentience"
+    : "Kenn sentience";
 
   return {
     abilityScores: { intelligence, wisdom, charisma },
-    abilityMethod: usesFullMind
-      ? "4d6, drop the lowest die, for each of INT, WIS, and CHA."
-      : "1d10 + 1d8, for each of INT, WIS, and CHA.",
-    intelligenceTier: usesFullMind ? "Full sentience" : "Diminished sentience",
+    abilityMethod,
+    intelligenceTier,
     alignment: weightedPick(rng, SENTIENT_TABLES.alignments),
     communication,
     literacy,
