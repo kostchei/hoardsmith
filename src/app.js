@@ -1,6 +1,6 @@
 import { CATEGORY_OPTIONS, ITEM_FAMILY_OPTIONS, ITEM_FAMILY_RULES, SOURCES } from "./data.js";
 import { exportJson, exportMarkdown, downloadText } from "./exporters.js";
-import { generateItem, getBaseItemsForUi } from "./generator.js";
+import { generateClassItem, generateItem, getBaseItemsForUi, getClassItemOptions } from "./generator.js";
 import { listModels, summarizeItem } from "./lmstudio.js";
 
 const state = {
@@ -467,3 +467,136 @@ function initialize() {
 }
 
 initialize();
+
+// ── Class Item Tab ───────────────────────────────────────────────────────────
+
+const classElements = {
+  tabForge:      document.querySelector("#tab-forge"),
+  tabClassItem:  document.querySelector("#tab-class-item"),
+  panelForge:    document.querySelector("#panel-forge"),
+  panelClassItem:document.querySelector("#panel-class-item"),
+  form:          document.querySelector("#classItemForm"),
+  classSelect:   document.querySelector("#classSelect"),
+  itemSelect:    document.querySelector("#classItemSelect"),
+  seedInput:     document.querySelector("#classItemSeed"),
+  resultRoot:    document.querySelector("#resultRoot"),
+  appStatus:     document.querySelector("#appStatus")
+};
+
+const classOptions = getClassItemOptions();
+
+function populateClassItems() {
+  const classId = classElements.classSelect.value;
+  const select = classElements.itemSelect;
+  select.innerHTML = '<option value="random">Random for class</option>';
+
+  const classData = classOptions.find((c) => c.id === classId);
+  if (!classData) return;
+
+  for (const item of classData.items) {
+    const opt = document.createElement("option");
+    opt.value = item.id;
+    opt.textContent = item.name;
+    select.appendChild(opt);
+  }
+}
+
+function renderClassItem(result) {
+  const { name, prefix, suffix, quirk, purpose, sentience, secondary, minorProps, baseItem, seed } = result;
+
+  const sentienceHtml = sentience
+    ? `<article class="result-card">
+        <p class="meta-kicker">Sentience</p>
+        <h3>Sentient Item</h3>
+        <ul class="detail-list">
+          <li><span class="detail-label">Intelligence</span><div class="card-copy">${sentience.intelligence}</div></li>
+          <li><span class="detail-label">Wisdom</span><div class="card-copy">${sentience.wisdom}</div></li>
+          <li><span class="detail-label">Charisma</span><div class="card-copy">${sentience.charisma}</div></li>
+          <li><span class="detail-label">Alignment</span><div class="card-copy">${escapeHtml(sentience.alignment)}</div></li>
+          <li><span class="detail-label">Communication</span><div class="card-copy">${escapeHtml(sentience.communication)}</div></li>
+          <li><span class="detail-label">Senses</span><div class="card-copy">${escapeHtml(sentience.senses)}</div></li>
+          <li><span class="detail-label">Voice</span><div class="card-copy">${escapeHtml(sentience.voice)}</div></li>
+          ${sentience.purpose ? `<li><span class="detail-label">Purpose</span><div class="card-copy">${escapeHtml(sentience.purpose)}</div></li>` : ""}
+          <li><span class="detail-label">Ideal</span><div class="card-copy">${escapeHtml(sentience.ideal)}</div></li>
+          <li><span class="detail-label">Bond</span><div class="card-copy">${escapeHtml(sentience.bond)}</div></li>
+          <li><span class="detail-label">Flaw</span><div class="card-copy">${escapeHtml(sentience.flaw)}</div></li>
+        </ul>
+      </article>`
+    : `<article class="result-card">
+        <p class="meta-kicker">Sentience</p>
+        <h3>Non-sentient</h3>
+        <p class="card-copy">This item has no will or personality of its own.</p>
+      </article>`;
+
+  const abilityHtml = secondary
+    ? `<article class="result-card">
+        <p class="meta-kicker">Secondary Ability</p>
+        <h3>${escapeHtml(secondary.label)}</h3>
+        <p class="card-copy">${escapeHtml(secondary.effect)}</p>
+        <p class="card-copy"><em>Activation: ${escapeHtml(secondary.activation)}</em></p>
+      </article>`
+    : `<article class="result-card">
+        <p class="meta-kicker">Minor Properties</p>
+        <h3>${escapeHtml(minorProps.beneficial.label)} / ${escapeHtml(minorProps.detrimental.label)}</h3>
+        <ul class="detail-list">
+          <li><span class="detail-label">Beneficial</span><div class="card-copy">${escapeHtml(minorProps.beneficial.description)}</div></li>
+          <li><span class="detail-label">Detrimental</span><div class="card-copy">${escapeHtml(minorProps.detrimental.description)}</div></li>
+        </ul>
+      </article>`;
+
+  classElements.resultRoot.innerHTML = `
+    <article class="result-card">
+      <p class="meta-kicker">Class Item — seed ${escapeHtml(String(seed))}</p>
+      <h3>${escapeHtml(name)}</h3>
+      <ul class="detail-list">
+        <li><span class="detail-label">Base</span><div class="card-copy">${escapeHtml(baseItem.name)}${baseItem.damage ? ` — ${escapeHtml(baseItem.damage)}` : ""}${baseItem.armorClass ? ` — AC ${escapeHtml(baseItem.armorClass)}` : ""}</div></li>
+        <li><span class="detail-label">Prefix</span><div class="card-copy">${escapeHtml(prefix.text)} <em>(${escapeHtml(prefix.category)})</em></div></li>
+        <li><span class="detail-label">Suffix</span><div class="card-copy">${escapeHtml(suffix.text)} <em>(${escapeHtml(suffix.category)})</em></div></li>
+      </ul>
+    </article>
+    <article class="result-card">
+      <p class="meta-kicker">Quirk</p>
+      <h3>Persistent Behaviour</h3>
+      <p class="card-copy">${escapeHtml(quirk)}</p>
+    </article>
+    <article class="result-card">
+      <p class="meta-kicker">Purpose</p>
+      <h3>Why It Was Made</h3>
+      <p class="card-copy">${escapeHtml(purpose)}</p>
+    </article>
+    ${sentienceHtml}
+    ${abilityHtml}
+  `;
+}
+
+function handleClassItemGenerate(event) {
+  event.preventDefault();
+  const characterClass = classElements.classSelect.value;
+  const baseItemId     = classElements.itemSelect.value;
+  const seedRaw        = classElements.seedInput.value.trim();
+
+  const result = generateClassItem({ seed: seedRaw || undefined, characterClass, baseItemId });
+  classElements.seedInput.value = String(result.seed);
+  renderClassItem(result);
+  setStatus(`Class item generated — seed ${result.seed}`);
+}
+
+function activateTab(tabName) {
+  const isForge = tabName === "forge";
+  classElements.tabForge.classList.toggle("tab-active", isForge);
+  classElements.tabClassItem.classList.toggle("tab-active", !isForge);
+  classElements.tabForge.setAttribute("aria-selected", String(isForge));
+  classElements.tabClassItem.setAttribute("aria-selected", String(!isForge));
+  classElements.panelForge.hidden = !isForge;
+  classElements.panelClassItem.hidden = isForge;
+}
+
+function initClassItemTab() {
+  populateClassItems();
+  classElements.classSelect.addEventListener("change", populateClassItems);
+  classElements.form.addEventListener("submit", handleClassItemGenerate);
+  classElements.tabForge.addEventListener("click", () => activateTab("forge"));
+  classElements.tabClassItem.addEventListener("click", () => activateTab("class-item"));
+}
+
+initClassItemTab();

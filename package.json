@@ -4,6 +4,10 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev": "swa start . --port 4280",
     "check": "node --check server.js && node --check src/data.js && node --check src/generator.js && node --check src/exporters.js && node --check src/lmstudio.js && node --check src/app.js"
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.0"
   }
 }

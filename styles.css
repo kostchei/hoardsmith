@@ -88,6 +88,41 @@ h1 {
   line-height: 1.6;
 }
 
+.tab-nav {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto 0;
+  display: flex;
+  gap: 6px;
+  padding: 0 0 0 2px;
+}
+
+.tab-button {
+  padding: 8px 20px;
+  border: 1px solid rgba(246, 239, 221, 0.18);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: rgba(34, 50, 61, 0.6);
+  color: rgba(246, 239, 221, 0.6);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 180ms, color 180ms;
+}
+
+.tab-button:hover {
+  background: rgba(46, 67, 80, 0.8);
+  color: var(--parchment-100);
+}
+
+.tab-button.tab-active {
+  background: rgba(34, 50, 61, 0.95);
+  color: var(--gold-400);
+  border-color: rgba(203, 158, 79, 0.35);
+}
+
 .app-shell {
   width: min(1180px, calc(100vw - 32px));
   margin: 0 auto 28px;

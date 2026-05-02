@@ -22,7 +22,12 @@
     </header>
 
     <main class="app-shell">
-      <section class="panel control-panel">
+      <nav class="tab-nav" role="tablist">
+        <button id="tab-forge"      class="tab-button tab-active" role="tab" aria-selected="true"  aria-controls="panel-forge">Forge</button>
+        <button id="tab-class-item" class="tab-button"            role="tab" aria-selected="false" aria-controls="panel-class-item">Class Item</button>
+      </nav>
+
+      <section id="panel-forge" class="panel control-panel">
         <div class="panel-heading">
           <h2>Forge</h2>
           <p>Choose either standard 2024 category generation or an optional 2024 DMG family roll, then set the chassis and agency.</p>
@@ -158,6 +163,50 @@
             </li>
           </ul>
         </section>
+      </section>
+
+      <section id="panel-class-item" class="panel control-panel" hidden>
+        <div class="panel-heading">
+          <h2>Class Item</h2>
+          <p>Generate a class-appropriate magic item with descriptors, purpose, sentience, and a secondary ability or minor properties.</p>
+        </div>
+
+        <form id="classItemForm" class="control-grid">
+          <label>
+            <span>Class</span>
+            <select id="classSelect" name="characterClass">
+              <option value="random">Random</option>
+              <option value="fighter">Fighter</option>
+              <option value="barbarian">Barbarian</option>
+              <option value="rogue">Rogue</option>
+              <option value="wizard">Wizard</option>
+              <option value="cleric">Cleric</option>
+              <option value="paladin">Paladin</option>
+              <option value="ranger">Ranger</option>
+              <option value="druid">Druid</option>
+              <option value="bard">Bard</option>
+              <option value="monk">Monk</option>
+              <option value="sorcerer">Sorcerer</option>
+              <option value="warlock">Warlock</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Base Item</span>
+            <select id="classItemSelect" name="baseItemId">
+              <option value="random">Random for class</option>
+            </select>
+          </label>
+
+          <label class="span-two">
+            <span>Seed</span>
+            <input id="classItemSeed" name="seed" type="text" placeholder="Leave blank or -1 for random">
+          </label>
+
+          <div class="button-row span-two">
+            <button id="generateClassItemButton" type="submit" class="primary-button">Generate Class Item</button>
+          </div>
+        </form>
       </section>
 
       <section class="panel result-panel">

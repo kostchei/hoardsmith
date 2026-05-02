@@ -1,13 +1,20 @@
 import {
   BASE_ITEMS,
+  CLASS_PREFERRED_ITEMS,
+  DESCRIPTOR_QUIRKS,
+  DESCRIPTORS,
   ITEM_FAMILY_OPTIONS,
   ITEM_FAMILY_RULES,
   MAGIC_CATEGORY_RULES,
+  MINOR_BENEFICIAL,
+  MINOR_DETRIMENTAL,
   MODEL_RECOMMENDATIONS,
   NARRATIVE_TABLES,
   POWER_MODULES,
+  PURPOSES,
   RARITY_RULES,
   REFERENCE_ITEMS,
+  SECONDARY_ABILITIES,
   SENTIENT_TABLES,
   SOURCES,
   THEME_LEXICON
@@ -1001,6 +1008,134 @@ export function generateItem(rawOptions) {
     gmShortForm: buildGmShortForm(item, mechanics, drawbacks),
     modelRecommendations: MODEL_RECOMMENDATIONS
   };
+}
+
+// ── Class Item Generator ────────────────────────────────────────────────────
+
+const SWORD_IDS = new Set(["longsword", "shortsword", "greatsword", "rapier", "scimitar", "broadsword"]);
+const RANGED_IDS = new Set(["longbow", "shortbow", "light-crossbow", "heavy-crossbow", "hand-crossbow", "blowgun", "dart", "sling"]);
+
+function getSentienceChance(baseItem) {
+  if (SWORD_IDS.has(baseItem.id))                                            return 0.75;
+  if (baseItem.category === "weapon")                                        return 0.66;
+  if (["wondrous", "ring", "wand", "rod"].includes(baseItem.category))      return 0.66;
+  if (baseItem.category === "armor" || baseItem.category === "shield")       return 0.50;
+  return 0.50;
+}
+
+function resolveClassBaseItem(rng, characterClass, baseItemId) {
+  // Specific item requested
+  if (baseItemId && baseItemId !== "random") {
+    for (const items of Object.values(BASE_ITEMS)) {
+      const found = items.find((i) => i.id === baseItemId);
+      if (found) return found;
+    }
+  }
+
+  // Class-based random pick
+  const classKey = (characterClass || "").toLowerCase();
+  const preferred = CLASS_PREFERRED_ITEMS[classKey];
+  if (preferred?.length) {
+    const id = pick(rng, preferred);
+    for (const items of Object.values(BASE_ITEMS)) {
+      const found = items.find((i) => i.id === id);
+      if (found) return found;
+    }
+  }
+
+  // Full random fallback: pick from weapons only (most interesting)
+  return pick(rng, BASE_ITEMS.weapon);
+}
+
+function buildClassItemSentience(rng, hasPurpose) {
+  const roll3d6 = () => randomInt(rng, 1, 6) + randomInt(rng, 1, 6) + randomInt(rng, 1, 6);
+  return {
+    intelligence: roll3d6(),
+    wisdom:       roll3d6(),
+    charisma:     roll3d6(),
+    alignment:    weightedPick(rng, SENTIENT_TABLES.alignments),
+    communication:weightedPick(rng, SENTIENT_TABLES.communication),
+    senses:       pick(rng, SENTIENT_TABLES.senses),
+    voice:        pick(rng, SENTIENT_TABLES.voices),
+    purpose:      hasPurpose ? pick(rng, SENTIENT_TABLES.purposes) : null,
+    ideal:        pick(rng, SENTIENT_TABLES.ideals),
+    bond:         pick(rng, SENTIENT_TABLES.bonds),
+    flaw:         pick(rng, SENTIENT_TABLES.flaws)
+  };
+}
+
+function resolveSecondaryAbility(rng, baseItem) {
+  const id = baseItem.id;
+  const category = baseItem.category;
+
+  let pool;
+  if (SWORD_IDS.has(id))                pool = SECONDARY_ABILITIES.sword;
+  else if (RANGED_IDS.has(id))          pool = SECONDARY_ABILITIES.ranged;
+  else if (category === "weapon")       pool = SECONDARY_ABILITIES.weapon;
+  else if (category === "armor")        pool = SECONDARY_ABILITIES.armor;
+  else if (category === "shield")       pool = SECONDARY_ABILITIES.shield;
+  else if (["wondrous", "ring", "wand", "rod", "staff", "tool"].includes(category))
+                                        pool = SECONDARY_ABILITIES.wondrous;
+  else                                  pool = SECONDARY_ABILITIES.default;
+
+  return pick(rng, pool);
+}
+
+export function generateClassItem({ seed, characterClass, baseItemId } = {}) {
+  const resolvedSeed = (seed !== undefined && seed !== null && seed !== "" && seed !== "-1")
+    ? seed
+    : Math.floor(Math.random() * 0xffffffff);
+
+  const rng = createRng(resolvedSeed);
+
+  const baseItem = resolveClassBaseItem(rng, characterClass, baseItemId);
+  const prefix   = pick(rng, DESCRIPTORS.prefixes);
+  const suffix   = pick(rng, DESCRIPTORS.suffixes);
+
+  // Prefix quirkTag takes precedence; fall back to suffix's tag if they match or prefix has no tag
+  const quirkTag  = prefix.quirkTag || suffix.quirkTag;
+  const quirk     = DESCRIPTOR_QUIRKS[quirkTag] ?? null;
+
+  const purpose   = pick(rng, PURPOSES);
+
+  const sentienceChance = getSentienceChance(baseItem);
+  const isSentient      = chance(rng, sentienceChance);
+  const hasPurpose      = isSentient && chance(rng, 0.5);
+  const sentience       = isSentient ? buildClassItemSentience(rng, hasPurpose) : null;
+
+  const useSecondary    = chance(rng, 0.5);
+  const secondary       = useSecondary  ? resolveSecondaryAbility(rng, baseItem) : null;
+  const minorProps      = !useSecondary ? {
+    beneficial:  pick(rng, MINOR_BENEFICIAL),
+    detrimental: pick(rng, MINOR_DETRIMENTAL)
+  } : null;
+
+  return {
+    seed: resolvedSeed,
+    baseItem,
+    name: `${prefix.text} ${baseItem.name} of ${suffix.text}`,
+    prefix,
+    suffix,
+    quirk,
+    purpose,
+    sentience,
+    secondary,
+    minorProps
+  };
+}
+
+export function getClassItemOptions() {
+  return Object.entries(CLASS_PREFERRED_ITEMS).map(([id, itemIds]) => ({
+    id,
+    label: id.charAt(0).toUpperCase() + id.slice(1),
+    items: itemIds.map((itemId) => {
+      for (const items of Object.values(BASE_ITEMS)) {
+        const found = items.find((i) => i.id === itemId);
+        if (found) return found;
+      }
+      return null;
+    }).filter(Boolean)
+  }));
 }
 
 export function getBaseItemsForUi(category, familyId = "standard", options = {}) {
